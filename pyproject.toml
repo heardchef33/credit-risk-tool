@@ -1,0 +1,16 @@
+[project]
+name = "credit-risk"
+version = "0.1.0"
+description = "predicting loan defaults using lending club data"
+authors = [
+    {name = "heardchef33",email = "prachathornth@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
