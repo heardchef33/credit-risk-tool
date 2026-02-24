@@ -19,6 +19,10 @@ def loading(file_path):
 
         print("Error in reading the file. Please try again")
 
+def sample(df): 
+
+    return df.groupby('loan_status', group_keys=False).sample(frac=0.1, random_state=42)
+
 if __name__ == '__main__': 
 
     loading("/Users/thananpornsethjinda/Desktop/credit-risk-modeling/data/accepted_2007_to_2018Q4.csv")
