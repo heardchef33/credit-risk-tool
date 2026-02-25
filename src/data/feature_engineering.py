@@ -1,5 +1,7 @@
 import pandas as pd 
 
+import scipy.stats as stats
+
 from feature_engine.selection import DropConstantFeatures
 
 
@@ -51,5 +53,37 @@ def correlation_analysis(X_train: pd.DataFrame, X_val: pd.DataFrame, X_test: pd.
         ]
     
     return corr_columns_drop
+
+def mwu(charged_off: pd.DataFrame, fully_paid: pd.DataFrame):
+    """
+    Input: charged-off group and fully-paid group
+    Returns: data splits containing subset of the features / columns to drop maybe 
+    Purpose: reduce the feature space and remove statistically insignificant numerical variables
+    """
+
+    # Mann-Whitney U test to test for correlation between the continuous features and the categorical targets 
+
+    # We establish the level of significance to be 5%
+
+    # Let the charged-off group be denoted by C 
+    # Let the fully paid group be denoted by F 
+
+    # H0: F_median = C_median (median of the fully paid group is the same as the median of the charged off group)
+
+    # H1: F_median != C_median (median of the fully paid group is the same as the median of the charged off group)
+
+    # So, if p-value < 0.05, we reject the null hypothesis to include that the medians are different so then 
+    # the correlation between that specific continuous feature and categorical target is significant 
+
+    columns_to_drop_from_mwu = []
+
+    for column in charged_off.select_dtypes(include=('float64')).columns: 
+        stat, p_value = stats.mannwhitneyu(charged_off[column], fully_paid[column], alternative='two-sided')
+
+        if p_value >= 0.05: 
+            print(f"{column} to be dropped since p_value = {p_value}")
+            columns_to_drop_from_mwu.append(column)
+
+    return columns_to_drop_from_mwu
 
 
