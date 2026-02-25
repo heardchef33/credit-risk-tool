@@ -119,7 +119,7 @@ def mutual_information(k: int, X_train: pd.DataFrame, X_val: pd.DataFrame, X_tes
         else:
             masking.append(False)
 
-    sel = SelectKBest(lambda X, y: mutual_info_classif(X, y, discrete_features=masking), k=25)
+    sel = SelectKBest(lambda X, y: mutual_info_classif(X, y, discrete_features=masking), k=k)
     sel.fit(X_train, y_train)
 
     X_train = sel.transform(X_train)
