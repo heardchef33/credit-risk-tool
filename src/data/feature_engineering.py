@@ -4,6 +4,9 @@ import scipy.stats as stats
 
 from feature_engine.selection import DropConstantFeatures
 
+from sklearn.feature_selection import mutual_info_classif
+from sklearn.feature_selection import SelectKBest
+
 
 
 def dropping_constant_features(X_train: pd.DataFrame, X_val: pd.DataFrame, X_test: pd.DataFrame): 
@@ -85,5 +88,48 @@ def mwu(charged_off: pd.DataFrame, fully_paid: pd.DataFrame):
             columns_to_drop_from_mwu.append(column)
 
     return columns_to_drop_from_mwu
+
+def test_of_independence(X_train: pd.DataFrame, whole_group: pd.DataFrame): 
+
+    columns_to_drop_from_chi_square = []
+
+    for column in X_train.select_dtypes(exclude=('float64')).columns:
+
+        contingency_table = pd.crosstab(whole_group[column], whole_group['loan_status'])
+
+        chi2, p_value, degree_of_freedom, expected_values = stats.chi2_contingency(contingency_table)
+
+        if p_value >= 0.05: 
+            print(f"{column} to be dropped since p_value = {p_value}")
+            columns_to_drop_from_chi_square.append(column)
+    
+    return columns_to_drop_from_chi_square
+
+def mutual_information(k: int, X_train: pd.DataFrame, X_val: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, cat_columns: list): 
+    """
+    Input: number of features to keep, data splits 
+    Returns: data splits containing subset of the features / columns to drop maybe 
+    Purpose: capture non-linear relationships and remove insignificant numerical, categorical variables that 
+    """
+
+    masking = []
+    for column in X_train.columns: 
+        if column in cat_columns: 
+            masking.append(True)
+        else:
+            masking.append(False)
+
+    sel = SelectKBest(lambda X, y: mutual_info_classif(X, y, discrete_features=masking), k=25)
+    sel.fit(X_train, y_train)
+
+    X_train = sel.transform(X_train)
+    X_val = sel.transform(X_val)
+    X_test = sel.transform(X_test)
+
+    X_train = pd.DataFrame(X_train, columns=sel.get_feature_names_out())
+    X_val = pd.DataFrame(X_val, columns=sel.get_feature_names_out())
+    X_test = pd.DataFrame(X_test, columns=sel.get_feature_names_out())
+
+    return X_train, X_val, X_test
 
 
