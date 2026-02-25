@@ -17,6 +17,8 @@ def initial_preprocessing(X_train: pd.DataFrame, X_val: pd.DataFrame, X_test: pd
 
     # imputation to remove null values 
 
+    print("Imputating missing numerical values ...")
+
     NUMERICAL_COLUMNS = X_train.select_dtypes(include=('float64')).columns.to_list()
 
     imputer = SimpleImputer(strategy='median')
@@ -24,20 +26,29 @@ def initial_preprocessing(X_train: pd.DataFrame, X_val: pd.DataFrame, X_test: pd
     X_val[NUMERICAL_COLUMNS] = imputer.transform(X_val[NUMERICAL_COLUMNS])
     X_test[NUMERICAL_COLUMNS] = imputer.transform(X_test[NUMERICAL_COLUMNS])
 
+    print("Numerical imputation complete!")
+
     CATEGORICAL_COLUMNS = X_train.select_dtypes(include=('object')).columns.to_list()
+
+    print("Imputating missing categorical values ...")
 
     cat_imputer = SimpleImputer(strategy="most_frequent")
     X_train[CATEGORICAL_COLUMNS] = cat_imputer.fit_transform(X_train[CATEGORICAL_COLUMNS])
     X_val[CATEGORICAL_COLUMNS] = cat_imputer.transform(X_val[CATEGORICAL_COLUMNS])
     X_test[CATEGORICAL_COLUMNS] = cat_imputer.transform(X_test[CATEGORICAL_COLUMNS])
 
+    print("Categorical imputation complete!")
+
     # scaling 
+    print("Scaling numerical values using robust scaler ...")
 
     scale = RobustScaler()
 
     X_train[NUMERICAL_COLUMNS] = scale.fit_transform(X_train[NUMERICAL_COLUMNS])
     X_val[NUMERICAL_COLUMNS] = scale.transform(X_val[NUMERICAL_COLUMNS])
     X_test[NUMERICAL_COLUMNS] = scale.transform(X_test[NUMERICAL_COLUMNS]) 
+
+    print("Scaling complete!")
 
     return X_train, X_val, X_test
 
@@ -52,9 +63,11 @@ def categorical_preprocessing(X_train: pd.DataFrame, X_val: pd.DataFrame, X_test
     X_val = X_val.copy()
     X_test = X_test.copy()
 
-    ORDINAL_COLUMNS = ['sub_grade', 'emp_length']
+    ORDINAL_COLUMNS = ['sub_grade']
 
     ONE_HOT_COLUMNS = ['term', 'home_ownership']
+
+    print("One-hot encoding select categorical columns ...")
 
     enc = OneHotEncoder(drop='first')
 
@@ -68,6 +81,10 @@ def categorical_preprocessing(X_train: pd.DataFrame, X_val: pd.DataFrame, X_test
 
     X_test[ONE_HOT_ENCODED_COLUMNS] = enc.transform(X_test[ONE_HOT_COLUMNS]).toarray()
 
+    print("One-hot encoding successful!")
+
+    print("Ordinal encoding select categorical columns ...")
+
     ordinal_enc = OrdinalEncoder()
 
     ordinal_enc.fit(X_train[ORDINAL_COLUMNS])
@@ -80,11 +97,14 @@ def categorical_preprocessing(X_train: pd.DataFrame, X_val: pd.DataFrame, X_test
 
     X_test[ORDINAL_ENCODED_COLUMNS] = ordinal_enc.transform(X_test[ORDINAL_COLUMNS])
 
+    print("Ordinal encoding successful!")
+
     X_train_final = X_train.select_dtypes(exclude=['str']) # change to string
 
-    X_val_final = X_train.select_dtypes(exclude=['str'])
+    X_val_final = X_val.select_dtypes(exclude=['str'])
 
-    X_test_final = X_train.select_dtypes(exclude=['str'])
+    X_test_final = X_test.select_dtypes(exclude=['str'])
+
 
     return X_train_final, X_val_final, X_test_final, ORDINAL_ENCODED_COLUMNS + ONE_HOT_ENCODED_COLUMNS# have to return ordinal columns and encoded as well 
 
