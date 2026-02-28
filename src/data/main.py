@@ -9,6 +9,11 @@ from src.data.preprocessing import initial_preprocessing, categorical_preprocess
 
 
 def data_preparation_pipeline(filepath: str, want_sample: bool, features_to_keep: int): 
+    """
+    input: filepath, boolean for sample, number of features to keep
+    returns: data splits
+    purpose: pipeline to orchestrate all data preparation step
+    """
     print("Starting data preparation pipeline")
     print("""
     1. Loading Data 
@@ -39,9 +44,9 @@ def data_preparation_pipeline(filepath: str, want_sample: bool, features_to_keep
 
     fully_paid = grouped.loc[grouped['loan_status'] == 'Fully Paid']
 
-    columns_to_drop.append(correlation_analysis(X_train=X_train, X_val=X_val, X_test=X_test))
-    columns_to_drop.append(mwu(charged_off=charged_off, fully_paid=fully_paid))
-    columns_to_drop.append(test_of_independence(X_train=X_train, whole_group=grouped))
+    columns_to_drop.extend(correlation_analysis(X_train=X_train, X_val=X_val, X_test=X_test))
+    columns_to_drop.extend(mwu(charged_off=charged_off, fully_paid=fully_paid))
+    columns_to_drop.extend(test_of_independence(X_train=X_train, whole_group=grouped))
 
     X_train.drop(columns_to_drop, axis=1, inplace=True) 
     X_val.drop(columns_to_drop, axis=1, inplace=True) 
@@ -49,13 +54,14 @@ def data_preparation_pipeline(filepath: str, want_sample: bool, features_to_keep
 
     X_train, X_val, X_test, cat_columns = categorical_preprocessing(X_train=X_train, X_val=X_val, X_test=X_test)
 
-    #mutual information
+    X_train, X_val, X_test = mutual_information(k=features_to_keep, X_train=X_train, X_val=X_val, X_test=X_test, y_train=y_train, cat_columns=cat_columns)
 
-    return mutual_information(k=features_to_keep, X_train=X_train, X_val=X_val, X_test=X_test, y_train=y_train, cat_columns=cat_columns), y_train, y_val, y_test
+    return X_train, X_val, X_test, y_train, y_val, y_test
+
 
 
 if __name__ == '__main__': 
-    
+
     filepath = "/Users/thananpornsethjinda/Desktop/credit-risk-modeling/data/accepted_2007_to_2018Q4.csv"
     want_sample = True 
     features_to_keep = 13
