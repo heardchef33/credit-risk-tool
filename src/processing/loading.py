@@ -1,31 +1,19 @@
 import pandas as pd 
-import time 
+from pathlib import Path 
+from config.core import DATASET_DIR, TRAINED_MODEL_DIR, config
+from sklearn.pipeline import Pipeline
+import joblib
 
-def loading(file_path): 
+def load_dataset(*, file_name: str) -> pd.DataFrame: # the asterik forces file_name to be a keyboard only name
+    """Return pandas dataframe of the loaded dataset.""" 
 
-    try: 
+    dataframe = pd.read_csv(f'{DATASET_DIR}/{file_name}')
+    return dataframe
 
-        print("Reading and loading file ...")
+def load_pipeline(*, file_name: str) -> Pipeline:
+    """Load a persisted pipeline."""
 
-        start_time = time.time()
-
-        raw_data = pd.read_csv(file_path)
-
-        elapsed_time = time.time() - start_time
-
-        print(f"Data successfully read in {elapsed_time} seconds!")
-
-        return raw_data
-
-    except FileNotFoundError: 
-
-        print("Error in reading the file. Please try again")
-
-def sample(df): 
-
-    return df.groupby('loan_status', group_keys=False).sample(frac=0.1, random_state=42)
-
-if __name__ == '__main__': 
-
-    loading("/Users/thananpornsethjinda/Desktop/credit-risk-modeling/data/accepted_2007_to_2018Q4.csv")
+    file_path = TRAINED_MODEL_DIR / file_name
+    trained_model = joblib.load(filename=file_path)
+    return trained_model
 
