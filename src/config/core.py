@@ -9,7 +9,7 @@ PACKAGE_ROOT = Path(__file__).resolve().parent.parent
 ROOT = PACKAGE_ROOT.parent
 CONFIG_FILE_PATH = PACKAGE_ROOT / "config" / "config.yml"
 DATASET_DIR = ROOT / "data"
-TRAINED_MODEL_DIR = ROOT / "model"
+TRAINED_MODEL_DIR = ROOT / "model" / "saved_models"
 
 class AppConfig(BaseModel): 
 
@@ -20,6 +20,7 @@ class AppConfig(BaseModel):
     X_test_file: str 
     y_train_file: str
     y_test_file: str
+    pipeline_save_file: str
 
 class ModelConfig(BaseModel): 
 
