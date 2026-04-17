@@ -1,24 +1,26 @@
 # package overview 
 package_name: "credit-risk"
 
+pipeline_save_file: xgboost_model_output_v
+
 # datafiles 
-raw_data_file: ../../data/raw/accepted_2007_to_2018Q4.csv
+raw_data_file: raw/accepted_2007_to_2018Q4.csv
 
 # X train file path 
 
-X_train_file: ../../data/interim/xtrain.csv
+X_train_file: interim/xtrain.csv
 
 # X test file path 
 
-X_test_file: ../../data/interim/xtest.csv
+X_test_file: interim/xtest.csv
 
 # y train file path 
 
-y_train_file: ../../data/interim/ytrain.csv
+y_train_file: interim/ytrain.csv
 
 # y test file path 
 
-y_test_file: ../../data/interim/ytest.csv
+y_test_file: interim/ytest.csv
 
 # variables 
 target: loan_status 
