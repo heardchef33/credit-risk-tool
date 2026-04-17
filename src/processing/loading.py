@@ -21,6 +21,8 @@ def load_dataset(*, file_name: str) -> pd.DataFrame: # the asterik forces file_n
 
     dataframe = dataframe.dropna(subset=['loan_status'])
 
+    dataframe['term'] = dataframe['term'].str.strip()
+
     return dataframe
 
 def load_pipeline(*, file_name: str) -> Pipeline:
