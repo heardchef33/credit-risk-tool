@@ -7,6 +7,7 @@ class PredictionResults(BaseModel):
     errors: Optional[Any]
     version: str 
     predictions: Optional[List[float]]
+    prediction_probabilities: Optional[List[List[float]]]
 
 class MultipleLoanDefaultInputs(BaseModel): 
     inputs: List[LoanDefaultDataInputSchema]
