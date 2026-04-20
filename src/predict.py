@@ -22,14 +22,21 @@ def make_prediction(
 
     data = pd.DataFrame(input_data)
     validated_data, errors = validate_inputs(input_data=data)
-    results = {"predictions": None, "version": _version, "errors": errors}
+    results = {"predictions": None, "prediction_probabilities": None, "version": _version, "errors": errors}
 
     if not errors:
         predictions = _final_pipeline.predict(
             X=validated_data[config.model_settings.features]
         )
+        prediction_probabilities = _final_pipeline.predict_proba(
+            X=validated_data[config.model_settings.features]
+        )
+
+        print(prediction_probabilities)
+        
         results = {
             "predictions": predictions,  # type: ignore
+            "prediction_probabilities": prediction_probabilities,
             "version": _version,
             "errors": errors,
         }
