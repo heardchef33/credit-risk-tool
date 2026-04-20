@@ -38,13 +38,13 @@ class_ratio: 3.6572525177046007
 
 scale_pos_weight: 3.6572525177046007
 
-n_estimators: 177
+n_estimators: 82
 
 booster: 'gbtree'
 
-learning_rate: 0.01005215884865718
+learning_rate: 0.012956586498408085
 
-max_depth: 1
+max_depth: 4
 
 min_child_weight: 3
 
