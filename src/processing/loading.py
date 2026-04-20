@@ -1,6 +1,6 @@
 import pandas as pd 
 from pathlib import Path 
-from config.core import DATASET_DIR, TRAINED_MODEL_DIR, config
+from src.config.core import DATASET_DIR, TRAINED_MODEL_DIR, config
 from sklearn.pipeline import Pipeline
 import joblib
 import typing as t 
