@@ -45,9 +45,15 @@ st.markdown(
 )
 
 # API Configuration
+
+if "BACKEND_URL" in st.secrets:
+    DEFAULT_URL = st.secrets["BACKEND_URL"]
+else:
+    DEFAULT_URL = "http://localhost:8000/api/v1"
+
 API_URL = st.sidebar.text_input(
     "API URL",
-    value="http://localhost:8000/api/v1",
+    value=DEFAULT_URL,
     help="Base URL of the credit risk model API",
 )
 
