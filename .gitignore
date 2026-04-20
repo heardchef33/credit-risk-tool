@@ -1,0 +1,16 @@
+mlruns/
+
+catboost_info/
+
+mlflow.db
+
+__pycache__/
+
+*.pyc
+
+archived/
+
+optuna/
+
+data/
+
