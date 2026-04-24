@@ -6,7 +6,7 @@ import joblib
 import typing as t 
 from src import __version__ as _version
 
-def load_dataset(*, file_name: str) -> pd.DataFrame: # the asterik forces file_name to be a keyboard only name
+def load_dataset(*, file_name: str) -> pd.DataFrame: 
     """Return pandas dataframe of the loaded dataset.""" 
 
     dataframe = pd.read_csv(f'{DATASET_DIR}/{file_name}')

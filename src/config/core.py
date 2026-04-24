@@ -1,4 +1,3 @@
-# you place the config file in the package containing your model? 
 from pydantic import BaseModel
 from pathlib import Path
 from typing import List, Dict
@@ -15,7 +14,6 @@ class AppConfig(BaseModel):
 
     package_name: str
     raw_data_file: str
-    # train_data_file: str 
     X_train_file: str  
     X_test_file: str 
     y_train_file: str
