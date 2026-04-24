@@ -26,8 +26,6 @@ def run_training() -> None:
 
     final_pipeline.fit(X_train, y_train)
 
-    # do we log the metrics as well? 
-
     y_train_pred = final_pipeline.predict(X_train)
     y_test_pred = final_pipeline.predict(X_test)
 
