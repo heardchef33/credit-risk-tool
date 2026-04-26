@@ -1,0 +1,9 @@
+notebooks/
+mlruns/
+catboost_info/
+__pycache__/
+optuna/
+*.pyc
+mlflow.db
+.git
+.gitignore

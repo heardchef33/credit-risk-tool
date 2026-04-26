@@ -8,6 +8,10 @@ __pycache__/
 
 *.pyc
 
+.vscode
+.venv
+.pytest_cache
+
 archived/
 
 optuna/
