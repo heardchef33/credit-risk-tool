@@ -6,38 +6,153 @@ import pandas as pd
 
 st.set_page_config(
     page_title="Credit Risk Prediction",
-    page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS for better styling
+# Notion-style CSS
 st.markdown(
     """
     <style>
-    .main-header {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #1f77b4;
+    :root {
+        --accent-primary: #5B4EFF;
+        --accent-secondary: #00D9FF;
+        --danger: #FF6B6B;
+        --success: #06D6A0;
+        --warning: #FFB627;
+        --bg-light: #F8FAFC;
+        --text-primary: #1A202C;
+        --text-secondary: #718096;
+        --border-color: #E2E8F0;
+    }
+    
+    * {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    
+    .main {
+        background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+    }
+    
+    .notion-header {
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+    
+    .notion-subheader {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-top: 1.5rem;
         margin-bottom: 0.5rem;
     }
-    .prediction-box {
-        padding: 20px;
-        border-radius: 10px;
-        margin-top: 20px;
-        font-size: 1.2rem;
+    
+    .section-description {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
     }
+    
+    .prediction-card {
+        padding: 2rem;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+        font-size: 1rem;
+        border: 2px solid;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    
     .high-risk {
-        background-color: #ffcccc;
-        border: 2px solid #ff0000;
+        background: linear-gradient(135deg, #FEF3F3 0%, #FFEBEB 100%);
+        border-color: var(--danger);
     }
+    
     .low-risk {
-        background-color: #ccffcc;
-        border: 2px solid #00cc00;
+        background: linear-gradient(135deg, #F0FDF5 0%, #E6F9F1 100%);
+        border-color: var(--success);
     }
+    
     .medium-risk {
-        background-color: #ffffcc;
-        border: 2px solid #ffaa00;
+        background: linear-gradient(135deg, #FFFBF0 0%, #FFF5E6 100%);
+        border-color: var(--warning);
+    }
+    
+    .risk-text-high {
+        color: var(--danger);
+        font-weight: 600;
+    }
+    
+    .risk-text-low {
+        color: var(--success);
+        font-weight: 600;
+    }
+    
+    .risk-text-medium {
+        color: var(--warning);
+        font-weight: 600;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+        margin: 0;
+    }
+    
+    .metric-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.25rem;
+    }
+    
+    .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+        margin: 2rem 0;
+        border: none;
+    }
+    
+    [data-testid="stMetricValue"] {
+        color: var(--accent-primary) !important;
+    }
+    
+    .stButton > button {
+        background: linear-gradient(135deg, var(--accent-primary) 0%, #7C3AED 100%);
+        color: white !important;
+        border: none;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 0.75rem 1.5rem !important;
+        border-radius: 8px;
+        letter-spacing: 0.3px;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        box-shadow: 0 8px 20px rgba(91, 78, 255, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .about-section {
+        background: var(--bg-light);
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid var(--accent-secondary);
+    }
+    
+    .input-description {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-top: -0.5rem;
+        margin-bottom: 0.5rem;
     }
     </style>
     """,
@@ -57,16 +172,21 @@ API_URL = st.sidebar.text_input(
     help="Base URL of the credit risk model API",
 )
 
-st.markdown('<div class="main-header">💰 Credit Risk Prediction Model</div>', unsafe_allow_html=True)
+st.markdown('<div class="notion-header">Credit Risk Assessment</div>', unsafe_allow_html=True)
 st.markdown(
-    "Enter the loan applicant details below to get a risk prediction from the model."
+    '<div class="section-description">Enter the loan applicant details below to evaluate credit risk and receive a prediction from our machine learning model.</div>',
+    unsafe_allow_html=True
 )
+
+st.markdown('<hr class="divider">', unsafe_allow_html=True)
 
 # Create two columns for better layout
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("📊 Credit Profile")
+    st.markdown('<div class="notion-subheader">Credit Profile</div>', unsafe_allow_html=True)
+    st.markdown('<div class="input-description">Basic credit information and loan terms</div>', unsafe_allow_html=True)
+    
     int_rate = st.number_input(
         "Interest Rate (%)",
         min_value=0.0,
@@ -99,7 +219,9 @@ with col1:
     )
 
 with col2:
-    st.subheader("📋 Credit History")
+    st.markdown('<div class="notion-subheader">Credit History</div>', unsafe_allow_html=True)
+    st.markdown('<div class="input-description">Account activity and inquiries from recent months</div>', unsafe_allow_html=True)
+    
     inq_last_6mths = st.number_input(
         "Inquiries in Last 6 Months",
         min_value=0.0,
@@ -136,34 +258,42 @@ with col2:
         help="Percentage of bank credit cards with utilization >75%",
     )
 
-st.markdown("---")
-col3, col4 = st.columns(2)
+st.markdown('<hr class="divider">', unsafe_allow_html=True)
+col3, col4 = st.columns([2, 1])
 
 with col3:
-    st.subheader("💳 Account Information")
-    acc_open_past_24mths = st.number_input(
-        "Accounts Opened (24 months)",
-        min_value=0.0,
-        max_value=50.0,
-        value=1.0,
-        step=1.0,
-        help="Number of accounts opened in past 24 months",
-    )
+    st.markdown('<div class="notion-subheader">Account Information</div>', unsafe_allow_html=True)
+    st.markdown('<div class="input-description">Details about existing accounts and mortgages</div>', unsafe_allow_html=True)
     
-    mort_acc = st.number_input(
-        "Mortgage Accounts",
-        min_value=0.0,
-        max_value=20.0,
-        value=0.0,
-        step=1.0,
-        help="Number of mortgage accounts",
-    )
+    col_acc1, col_acc2 = st.columns(2)
+    
+    with col_acc1:
+        acc_open_past_24mths = st.number_input(
+            "Accounts Opened (24 months)",
+            min_value=0.0,
+            max_value=50.0,
+            value=1.0,
+            step=1.0,
+            help="Number of accounts opened in past 24 months",
+        )
+    
+    with col_acc2:
+        mort_acc = st.number_input(
+            "Mortgage Accounts",
+            min_value=0.0,
+            max_value=20.0,
+            value=0.0,
+            step=1.0,
+            help="Number of mortgage accounts",
+        )
 
-# Prepare prediction button
-col_button1, col_button2 = st.columns([1, 3])
-with col_button1:
+with col4:
+    st.markdown('<div class="notion-subheader" style="margin-top: 0;">Action</div>', unsafe_allow_html=True)
+    st.markdown('<div class="input-description">Get your prediction</div>', unsafe_allow_html=True)
+    st.markdown("")
+    st.markdown("")
     predict_button = st.button(
-        "🔮 Get Prediction",
+        "Get Prediction",
         key="predict_button",
         use_container_width=True,
         type="primary",
@@ -208,48 +338,53 @@ if predict_button:
                 prediction_probability = prediction_probabilities[0][1]
                 
                 # Display prediction result
-                st.markdown("---")
-                st.subheader("📈 Prediction Results")
+                st.markdown('<hr class="divider">', unsafe_allow_html=True)
+                st.markdown('<div class="notion-subheader">Assessment Results</div>', unsafe_allow_html=True)
                 
                 # Determine risk level
                 if prediction_probability < 0.33:
-                    risk_level = "🟢 Low"
+                    risk_level = "Low"
                     risk_class = "low-risk"
-                    interpretation = "This applicant has a low probability of defaulting on the loan."
+                    risk_text_class = "risk-text-low"
+                    interpretation = "This applicant has a low probability of defaulting on the loan. Recommended for approval."
                 elif prediction_probability < 0.66:
-                    risk_level = "🟡 Medium"
+                    risk_level = "Medium"
                     risk_class = "medium-risk"
-                    interpretation = "This applicant has a moderate probability of defaulting on the loan."
+                    risk_text_class = "risk-text-medium"
+                    interpretation = "This applicant has a moderate probability of defaulting on the loan. Further review recommended."
                 else:
-                    risk_level = "🔴 High"
+                    risk_level = "High"
                     risk_class = "high-risk"
-                    interpretation = "This applicant has a high probability of defaulting on the loan."
+                    risk_text_class = "risk-text-high"
+                    interpretation = "This applicant has a high probability of defaulting on the loan. Recommend rejection."
                 
+                # Create metrics row
                 col_pred1, col_pred2, col_pred3 = st.columns(3)
 
                 if prediction_value == 1: 
-
-                    with col_pred1: 
-                        st.metric("Status", f"❌ Reject")
-                
+                    status_text = "Reject"
+                    status_color = "#FF6B6B"
                 else: 
-
-                    with col_pred1: 
-                        st.metric("Status", f"✅ Accept")
+                    status_text = "Accept"
+                    status_color = "#06D6A0"
+                
+                with col_pred1: 
+                    st.markdown(f'<div style="text-align: center;"><div class="metric-value" style="color: {status_color};">{status_text}</div><div class="metric-label">Recommendation</div></div>', unsafe_allow_html=True)
                 
                 with col_pred2:
-                    st.metric("Default Probability", f"{prediction_probability:.2%}")
+                    st.markdown(f'<div style="text-align: center;"><div class="metric-value">{prediction_probability:.1%}</div><div class="metric-label">Default Probability</div></div>', unsafe_allow_html=True)
                 
                 with col_pred3:
-                    st.metric("Risk Level", risk_level)
+                    st.markdown(f'<div style="text-align: center;"><div class="metric-value" style="color: var(--accent-secondary);">{risk_level}</div><div class="metric-label">Risk Level</div></div>', unsafe_allow_html=True)
                 
+                # Display prediction card
                 st.markdown(
-                    f'<div class="prediction-box {risk_class}"><strong>{risk_level}</strong><br/>{interpretation}</div>',
+                    f'<div class="prediction-card {risk_class}"><div class="{risk_text_class}" style="font-size: 1.1rem; margin-bottom: 0.5rem;">{risk_level} Risk</div><p>{interpretation}</p></div>',
                     unsafe_allow_html=True,
                 )
                 
                 # Display input summary
-                with st.expander("📋 Input Summary", expanded=False):
+                with st.expander("View Input Summary", expanded=False):
                     summary_df = pd.DataFrame({
                         "Feature": [
                             "Interest Rate",
@@ -266,55 +401,57 @@ if predict_button:
                         "Value": [
                             f"{int_rate}%",
                             f"{fico_range_high}",
-                            f"{inq_last_6mths}",
-                            f"{open_il_12m}",
-                            f"{acc_open_past_24mths}",
-                            f"{mort_acc}",
-                            f"{num_tl_op_past_12m}",
-                            f"{percent_bc_gt_75}%",
+                            f"{int(inq_last_6mths)}",
+                            f"{int(open_il_12m)}",
+                            f"{int(acc_open_past_24mths)}",
+                            f"{int(mort_acc)}",
+                            f"{int(num_tl_op_past_12m)}",
+                            f"{percent_bc_gt_75:.0f}%",
                             sub_grade,
                             term,
                         ],
                     })
                     st.dataframe(summary_df, use_container_width=True, hide_index=True)
             else:
-                st.error("❌ No prediction received from the model.")
+                st.error("No prediction received from the model.")
         else:
-            st.error(f"❌ API Error: {response.status_code}")
+            st.error(f"API Error: {response.status_code}")
             error_detail = response.json() if response.text else "Unknown error"
             st.error(f"Details: {error_detail}")
     
+    
     except requests.exceptions.ConnectionError:
         st.error(
-            f"❌ Could not connect to the API at {API_URL}. "
+            f"Could not connect to the API at {API_URL}. "
             "Please ensure the backend API is running."
         )
     except requests.exceptions.Timeout:
-        st.error("❌ Request timed out. The API took too long to respond.")
+        st.error("Request timed out. The API took too long to respond.")
     except Exception as e:
-        st.error(f"❌ An error occurred: {str(e)}")
+        st.error(f"An error occurred: {str(e)}")
 
 # Sidebar information
 with st.sidebar:
     st.markdown("---")
-    st.subheader("ℹ️ About")
+    st.markdown('<div class="notion-subheader">About</div>', unsafe_allow_html=True)
     st.markdown(
         """
         This application uses a machine learning model to predict 
         the probability of loan default based on applicant features.
         
-        **Features Used:**
+        **Features Analyzed:**
         - Credit profile (FICO score, interest rate)
         - Credit history (inquiries, account age)
         - Account information (open accounts, mortgages)
         
         **Model Output:**
-        - Probability score (0-1)
+        - Probability score (0-100%)
         - Risk classification
+        - Recommendation
         """
     )
     
     st.markdown("---")
-    st.subheader("⚙️ Settings")
-    if st.button("Reset to Default Values"):
+    st.markdown('<div class="notion-subheader">Settings</div>', unsafe_allow_html=True)
+    if st.button("Reset Form"):
         st.rerun()
