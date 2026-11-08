@@ -1,8 +1,10 @@
-import streamlit as st
-import requests
-import json
-from typing import Optional, Dict, Any
+import os
+import threading
+import time
+
 import pandas as pd
+import requests
+import streamlit as st
 
 st.set_page_config(
     page_title="Credit Risk Prediction",
@@ -161,16 +163,72 @@ st.markdown(
 
 # API Configuration
 
-if "BACKEND_URL" in st.secrets:
-    DEFAULT_URL = st.secrets["BACKEND_URL"]
-else:
-    DEFAULT_URL = "http://localhost:8000/api/v1"
 
-API_URL = st.sidebar.text_input(
-    "API URL",
-    value=DEFAULT_URL,
-    help="Base URL of the credit risk model API",
-)
+def _configured_backend_url():
+    """Backend URL from Streamlit secrets (Community Cloud) or the environment (Docker)."""
+    try:
+        if "BACKEND_URL" in st.secrets:
+            return st.secrets["BACKEND_URL"]
+    except Exception:  # no secrets.toml at all
+        pass
+    return os.environ.get("BACKEND_URL")
+
+
+CONFIGURED_URL = _configured_backend_url()
+
+if CONFIGURED_URL:
+    # Deployed: don't let visitors repoint the app at another server.
+    API_URL = CONFIGURED_URL.rstrip("/")
+else:
+    # Local development: allow pointing the app at any API.
+    API_URL = st.sidebar.text_input(
+        "API URL",
+        value="http://localhost:8000/api/v1",
+        help="Base URL of the credit risk model API",
+    ).rstrip("/")
+
+# The API runs on Render's free tier, which sleeps after 15 minutes without
+# traffic and takes about a minute to wake up. Ping it in the background as
+# soon as someone opens the page, so it is usually awake by the time they
+# have filled in the form.
+WAKE_UP_SECONDS = 120
+RETRYABLE_STATUS = {502, 503, 504}
+
+
+def _wake_backend(url):
+    try:
+        requests.get(f"{url}/health", timeout=WAKE_UP_SECONDS)
+    except requests.exceptions.RequestException:
+        pass
+
+
+if not st.session_state.get("backend_warmup_started"):
+    st.session_state["backend_warmup_started"] = True
+    threading.Thread(target=_wake_backend, args=(API_URL,), daemon=True).start()
+
+
+def post_prediction(payload, status):
+    """POST to /predict, retrying while the API is still waking up."""
+    deadline = time.monotonic() + WAKE_UP_SECONDS
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            response = requests.post(f"{API_URL}/predict", json=payload, timeout=(10, 60))
+            if response.status_code not in RETRYABLE_STATUS:
+                return response
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            pass
+        if time.monotonic() >= deadline:
+            raise requests.exceptions.Timeout()
+        status.update(
+            label=(
+                "Waking up the model server... The free hosting plan sleeps when idle, "
+                f"so the first request can take up to a minute (attempt {attempt})."
+            )
+        )
+        time.sleep(5)
+
 
 st.markdown('<div class="notion-header">Credit Risk Assessment</div>', unsafe_allow_html=True)
 st.markdown(
@@ -295,7 +353,7 @@ with col4:
     predict_button = st.button(
         "Get Prediction",
         key="predict_button",
-        use_container_width=True,
+        width="stretch",
         type="primary",
     )
 
@@ -319,16 +377,12 @@ if predict_button:
     }
     
     try:
-        with st.spinner("⏳ Making prediction..."):
-            response = requests.post(
-                f"{API_URL}/predict",
-                json=input_data,
-                timeout=30,
-            )
-        
+        with st.status("Making prediction...") as status:
+            response = post_prediction(input_data, status)
+            status.update(label="Prediction ready", state="complete")
+
         if response.status_code == 200:
             result = response.json()
-            print(result)
             predictions = result.get("predictions", [])
             prediction_probabilities = result.get("prediction_probabilities", [])
             version = result.get("version", "Unknown")
@@ -416,24 +470,29 @@ if predict_button:
                             term,
                         ],
                     })
-                    st.dataframe(summary_df, use_container_width=True, hide_index=True)
+                    st.dataframe(summary_df, width="stretch", hide_index=True)
             else:
                 st.error("No prediction received from the model.")
+        elif response.status_code == 422:
+            st.error("Some inputs were rejected by the API:")
+            for error in response.json().get("detail", []):
+                field = error.get("loc", ["?"])[-1]
+                st.markdown(f"- **{field}**: {error.get('msg')}")
         else:
             st.error(f"API Error: {response.status_code}")
-            error_detail = response.json() if response.text else "Unknown error"
+            try:
+                error_detail = response.json()
+            except ValueError:
+                error_detail = response.text or "Unknown error"
             st.error(f"Details: {error_detail}")
-    
-    
-    except requests.exceptions.ConnectionError:
-        st.error(
-            f"Could not connect to the API at {API_URL}. "
-            "Please ensure the backend API is running."
-        )
+
     except requests.exceptions.Timeout:
-        st.error("Request timed out. The API took too long to respond.")
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+        st.error(
+            "The model server didn't wake up in time. It runs on a free hosting plan "
+            "that sleeps when idle; please press **Get Prediction** again in a moment."
+        )
+    except requests.exceptions.RequestException as e:
+        st.error(f"Could not reach the API at {API_URL}: {e}")
 
 # Sidebar information
 with st.sidebar:

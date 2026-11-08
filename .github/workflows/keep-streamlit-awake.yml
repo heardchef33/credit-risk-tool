@@ -1,0 +1,38 @@
+name: Keep Streamlit app awake
+
+# Streamlit Community Cloud sleeps apps after 12 hours without a browser visit.
+# Visiting every 6 hours keeps it awake with plenty of margin, even when
+# GitHub delays scheduled runs. Opening the app also makes it ping the API,
+# which wakes the Render backend.
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Playwright
+        run: |
+          pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Visit the app
+        env:
+          STREAMLIT_APP_URL: ${{ vars.STREAMLIT_APP_URL || 'https://credit-risk-tool-g4qccubtezupxgueqw3y7k.streamlit.app/' }}
+        run: python scripts/wake_streamlit.py
+
+      - name: Upload screenshot on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamlit-wake-failure
+          path: streamlit-wake-failure.png
