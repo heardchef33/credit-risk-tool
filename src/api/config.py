@@ -5,13 +5,15 @@ from typing import List, cast
 
 from loguru import logger
 from pydantic import AnyHttpUrl
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class LoggingSettings(BaseSettings):
     LOGGING_LEVEL: int = logging.INFO  # logging levels are type int
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(case_sensitive=True)
+
     API_V1_STR: str = "/api/v1"
 
     # Meta
@@ -27,9 +29,6 @@ class Settings(BaseSettings):
     ]
 
     PROJECT_NAME: str = "Loan Default Prediction API"
-
-    class Config:
-        case_sensitive = True
 
 
 # See: https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging  # noqa

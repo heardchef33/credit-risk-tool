@@ -57,15 +57,13 @@ def fetch_config_from_yaml(cfg_path: Path = None) -> YAML:
     
     if cfg_path: 
         with open(cfg_path, "r") as conf_file: 
-            parsed_config = load(conf_file.read()) # the load function requires a Loader parameter (https://github.com/YAML/pyyaml/wiki/PyYAML-YAML.load(input)-Deprecation)
+            parsed_config = load(conf_file.read())
             return parsed_config
     raise OSError(f"Did not find the config file at path: {cfg_path}")
 
 def create_and_validate_config(parsed_config: YAML = None) -> Config: 
     if parsed_config is None: 
         parsed_config = fetch_config_from_yaml()
-
-    print(parsed_config.data)
 
     _config = Config(
         app_config=AppConfig(**parsed_config.data), 
