@@ -346,17 +346,17 @@ if predict_button:
                     risk_level = "Low"
                     risk_class = "low-risk"
                     risk_text_class = "risk-text-low"
-                    interpretation = "This applicant has a low probability of defaulting on the loan. Recommended for approval."
+                    interpretation = "This applicant has a low risk score relative to other applicants. Recommended for approval."
                 elif prediction_probability < 0.66:
                     risk_level = "Medium"
                     risk_class = "medium-risk"
                     risk_text_class = "risk-text-medium"
-                    interpretation = "This applicant has a moderate probability of defaulting on the loan. Further review recommended."
+                    interpretation = "This applicant has a moderate risk score. Further review recommended."
                 else:
                     risk_level = "High"
                     risk_class = "high-risk"
                     risk_text_class = "risk-text-high"
-                    interpretation = "This applicant has a high probability of defaulting on the loan. Recommend rejection."
+                    interpretation = "This applicant has a high risk score. Recommend rejection."
                 
                 # Create metrics row
                 col_pred1, col_pred2, col_pred3 = st.columns(3)
@@ -372,7 +372,12 @@ if predict_button:
                     st.markdown(f'<div style="text-align: center;"><div class="metric-value" style="color: {status_color};">{status_text}</div><div class="metric-label">Recommendation</div></div>', unsafe_allow_html=True)
                 
                 with col_pred2:
-                    st.markdown(f'<div style="text-align: center;"><div class="metric-value">{prediction_probability:.1%}</div><div class="metric-label">Default Probability</div></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="text-align: center;"><div class="metric-value">{prediction_probability:.1%}</div><div class="metric-label">Risk Score</div></div>', unsafe_allow_html=True)
+                    st.caption(
+                        "Model score from 0-100%, not a calibrated default probability: the model is "
+                        "trained with class weighting to catch more defaults, which inflates scores. "
+                        "Use it to rank applicants; the recommendation uses a 50% cut-off."
+                    )
                 
                 with col_pred3:
                     st.markdown(f'<div style="text-align: center;"><div class="metric-value" style="color: var(--accent-secondary);">{risk_level}</div><div class="metric-label">Risk Level</div></div>', unsafe_allow_html=True)
@@ -437,7 +442,7 @@ with st.sidebar:
     st.markdown(
         """
         This application uses a machine learning model to predict 
-        the probability of loan default based on applicant features.
+        a loan default risk score based on applicant features.
         
         **Features Analyzed:**
         - Credit profile (FICO score, interest rate)
@@ -445,7 +450,7 @@ with st.sidebar:
         - Account information (open accounts, mortgages)
         
         **Model Output:**
-        - Probability score (0-100%)
+        - Risk score (0-100%)
         - Risk classification
         - Recommendation
         """

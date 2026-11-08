@@ -72,6 +72,8 @@ The model uses the following 10 features for predictions:
 
 The model returns both soft and hard predictions. In particular, the model returns the probability of default and also a final decision of whether the loan is charged off or fully paid and subsequently whether or not it should be rejected or accepted. 
 
+> **Note on the scores:** the model is trained with `scale_pos_weight` (cost-sensitive learning) to improve recall on defaults. This shifts the predicted probabilities upwards, so the soft output is a *risk score* for ranking applicants rather than a calibrated probability of default. Calibrating it (for example with `CalibratedClassifierCV` on held-out data) would be needed before reading it as a true default rate.
+
 ## Deployment 
 
 For deployment, the ideas from the notebook was modularised and written as python scripts. 
@@ -90,7 +92,7 @@ FastAPI-based REST API was used to obtain the predictions of the models for the 
    - **Account Information**: Accounts opened, mortgage accounts
 3. Click **"Get Prediction"** button (May take around 30-60 seconds if you are first loading it)
 4. View the results including:
-   - Default probability (0-100%)
+   - Risk score (0-100%)
    - Risk level classification (Low/Medium/High)
    - Model version
 5. Review the input summary in the expandable section
