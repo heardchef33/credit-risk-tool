@@ -11,17 +11,23 @@ def load_dataset(*, file_name: str) -> pd.DataFrame:
 
     dataframe = pd.read_csv(f'{DATASET_DIR}/{file_name}')
 
-    dataframe.drop(dataframe.loc[(dataframe['loan_status'] == 'Current') | (dataframe['loan_status'] == 'In Grace Period') | (dataframe['loan_status'] == 'Does not meet the credit policy. Status:Fully Paid') | (dataframe['loan_status'] == 'Does not meet the credit policy. Status:Charged Off')].index, inplace=True)
+    # Loans that are still running have no final outcome, and loans that did
+    # not meet the credit policy follow different rules, so drop them.
+    excluded = [
+        "Current",
+        "In Grace Period",
+        "Does not meet the credit policy. Status:Fully Paid",
+        "Does not meet the credit policy. Status:Charged Off",
+    ]
+    dataframe = dataframe[~dataframe["loan_status"].isin(excluded)].copy()
 
-    dataframe.loc[dataframe['loan_status'] == 'Late (16-30 days)', 'loan_status'] = 'Charged Off'
+    # Late and defaulted loans are treated as charged off (positive class).
+    late_or_default = ["Late (16-30 days)", "Late (31-120 days)", "Default"]
+    dataframe.loc[dataframe["loan_status"].isin(late_or_default), "loan_status"] = "Charged Off"
 
-    dataframe.loc[dataframe['loan_status'] == 'Late (31-120 days)', 'loan_status'] = 'Charged Off'
+    dataframe = dataframe.dropna(subset=["loan_status"]).copy()
 
-    dataframe.loc[dataframe['loan_status'] == 'Default', 'loan_status'] = 'Charged Off'
-
-    dataframe = dataframe.dropna(subset=['loan_status'])
-
-    dataframe['term'] = dataframe['term'].str.strip()
+    dataframe["term"] = dataframe["term"].str.strip()
 
     return dataframe
 
