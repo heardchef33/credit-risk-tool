@@ -72,6 +72,8 @@ The model uses the following 10 features for predictions:
 
 The model returns both soft and hard predictions. In particular, the model returns the probability of default and also a final decision of whether the loan is charged off or fully paid and subsequently whether or not it should be rejected or accepted. 
 
+> **Note on the scores:** the model is trained with `scale_pos_weight` (cost-sensitive learning) to improve recall on defaults. This shifts the predicted probabilities upwards, so the soft output is a *risk score* for ranking applicants rather than a calibrated probability of default. Calibrating it (for example with `CalibratedClassifierCV` on held-out data) would be needed before reading it as a true default rate.
+
 ## Deployment 
 
 For deployment, the ideas from the notebook was modularised and written as python scripts. 
@@ -82,15 +84,14 @@ FastAPI-based REST API was used to obtain the predictions of the models for the 
 
 ## Accessing the Front-End and Back-End 
 
-1. Open the Streamlit app at `https://credit-risk-tool-g4qccubtezupxgueqw3y7k.streamlit.app/`
-2. Open and start the API hosted by Render at `https://credit-risk-tool.onrender.com/` (This may take a minute or so for the back-end to wake up since I'm using the free tier). The interactive API documentation is also available using the above link.
+1. Open the Streamlit app at `https://credit-risk-tool-g4qccubtezupxgueqw3y7k.streamlit.app/`. The app wakes the API in the background as soon as it opens, so there is no need to visit the API first. The interactive API documentation is at `https://credit-risk-tool.onrender.com/docs`.
 2. Fill in the loan applicant details:
    - **Credit Profile**: Interest rate, FICO score, loan grade, term
    - **Credit History**: Inquiries, open accounts, account age
    - **Account Information**: Accounts opened, mortgage accounts
-3. Click **"Get Prediction"** button (May take around 30-60 seconds if you are first loading it)
+3. Click **"Get Prediction"**. If the free-tier API was asleep, the app waits and retries automatically (up to about a minute) instead of failing.
 4. View the results including:
-   - Default probability (0-100%)
+   - Risk score (0-100%)
    - Risk level classification (Low/Medium/High)
    - Model version
 5. Review the input summary in the expandable section
@@ -119,6 +120,36 @@ curl -X POST "https://credit-risk-tool.onrender.com/api/v1/predict" \
   }'
 ```
 
+### Invalid requests
+
+Requests are validated before they reach the model. Unknown categories (e.g. `"sub_grade": "A"`), out-of-range values (e.g. a FICO score outside 300-850), unknown or missing fields and empty batches are rejected with `422` and a message per field. Fields may be `null`: the pipeline imputes them with the training median / most frequent value.
+
+## Running Locally
+
+```bash
+uv sync                      # runtime + dev (pytest) dependencies
+uv run pytest                # run the test suite
+uv run uvicorn src.api.main:app --reload      # API on http://localhost:8000
+uv run streamlit run app.py                   # frontend on http://localhost:8501
+```
+
+Or run both with Docker: `docker compose up --build`.
+
+To work on the notebooks or retrain the model, install the training dependencies (MLflow, Optuna, CatBoost, LightGBM, SHAP, ...) and run the training script from the repository root:
+
+```bash
+uv sync --group training
+uv run python -m src.train
+```
+
+## Keeping the Demo Awake
+
+Both hosts sleep on their free tiers: Render after 15 minutes without traffic, Streamlit Community Cloud after 12 hours without a visit. This repository keeps them awake with:
+
+- **Uptime monitor** (UptimeRobot / cron-job.org) calling `https://credit-risk-tool.onrender.com/api/v1/health` every 5-10 minutes - the primary keep-alive for the API.
+- **`.github/workflows/keep-streamlit-awake.yml`** - opens the Streamlit app in a headless browser every 6 hours (and clicks the wake-up button if needed). Opening the app also wakes the API.
+- **`.github/workflows/keep-api-warm.yml`** - a backup `/health` ping every 10 minutes.
+
 ## Technologies and Libraries Used 
 
 Tech Stack used for Development: 
@@ -135,6 +166,7 @@ Tech Stack used for Development:
 - Streamlit 
 - uv, poetry
 - pytest
+- GitHub Actions, Playwright
 
 ## Project Structure
 ```
@@ -154,8 +186,10 @@ Tech Stack used for Development:
 ├── notebooks/            # Jupyter notebooks for analysis
 ├── data/                 # Data files (raw, processed, interim)
 ├── model/                # Trained models
+├── tests/                # pytest suite (processing, prediction, API)
+├── scripts/              # keep-alive helper for the Streamlit app
+├── .github/workflows/    # CI tests and keep-alive schedules
 ├── Dockerfile            # Docker image for API
 ├── Dockerfile.streamlit  # Docker image for frontend
-├── docker-compose.yml    # Multi-container configuration
-└── start.sh              # Startup script for local development
+└── docker-compose.yml    # Multi-container configuration
 ```

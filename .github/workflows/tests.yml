@@ -1,0 +1,20 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install runtime + dev dependencies
+        run: uv sync --frozen -p 3.12
+
+      - name: Run tests
+        run: uv run pytest -q

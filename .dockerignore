@@ -1,9 +1,22 @@
+# Local environments: copying a host (e.g. macOS) .venv into the image would
+# overwrite the Linux one created by `uv sync`.
+.venv/
+venv/
+.env
+
+# Not needed at runtime
 notebooks/
+data/
 mlruns/
 catboost_info/
-__pycache__/
 optuna/
-*.pyc
 mlflow.db
+archived/
+.pytest_cache/
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.github/
 .git
 .gitignore

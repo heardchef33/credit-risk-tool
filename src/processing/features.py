@@ -64,8 +64,6 @@ class MutualInfoSelector(BaseEstimator, TransformerMixin):
 
             masking = np.zeros(X.shape[1], dtype=bool)
 
-            print(X.columns)
-
             for i in range(X.shape[1]): 
 
                 feature = X.columns[i]
@@ -80,7 +78,6 @@ class MutualInfoSelector(BaseEstimator, TransformerMixin):
             # discrete_mask = [False] * X.shape[1]
             # for idx in self.categorical_features:
             # discrete_mask[idx] = True
-            print(masking)
         
         # Create selector
         self.selector_ = SelectKBest(
