@@ -427,11 +427,6 @@ if predict_button:
                 
                 with col_pred2:
                     st.markdown(f'<div style="text-align: center;"><div class="metric-value">{prediction_probability:.1%}</div><div class="metric-label">Risk Score</div></div>', unsafe_allow_html=True)
-                    st.caption(
-                        "Model score from 0-100%, not a calibrated default probability: the model is "
-                        "trained with class weighting to catch more defaults, which inflates scores. "
-                        "Use it to rank applicants; the recommendation uses a 50% cut-off."
-                    )
                 
                 with col_pred3:
                     st.markdown(f'<div style="text-align: center;"><div class="metric-value" style="color: var(--accent-secondary);">{risk_level}</div><div class="metric-label">Risk Level</div></div>', unsafe_allow_html=True)
